@@ -211,11 +211,11 @@ import random
 import string
 badpassword = 0
 goodpassword = 0
-vsego = 5
+vsego = int(input("Сколько паролей надо: "))
 all_passwords = []
 for i in range(vsego):
     password = []
-    while len(password)<24:
+    while len(password)<36:
         numbers = random.choice(string.digits)
         special = random.choice("!@#$%^&*")
         letters = random.choice(string.ascii_letters)

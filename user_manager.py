@@ -1,4 +1,20 @@
 import json
+import sqlite3
+import requests
+
+get = requests.get("https://jsonplaceholder.typicode.com/users")
+users = get.json()
+
+conn = sqlite3.connect("users.db")
+cursor = conn.cursor()
+
+cursor.execute("""
+    CREATE TABLE IF NOT EXISTS users (
+        name TEXT,
+        email TEXT,
+        password TEXT)
+    """)
+
 
 class User:
     def __init__(self, name, email, password):
@@ -43,12 +59,37 @@ class UserManager:
         for user in self.users:
             print(f"Имя: {user.name}, Email: {user.email}")
 
+    def save_to_db(self):
+        for user in self.users:
+            cursor.execute(
+                "INSERT INTO users (name, email, password) VALUES(?, ?, ?)",
+                (user.name, user.email, user.password)
+            )
+        conn.commit()
+    
+    def load_from_db(self):
+        cursor.execute("SELECT name, email, password FROM users")
+        rows = cursor.fetchall()
+        self.users = []
+        for row in rows:
+            user = User(row[0], row[1], row[2])
+            self.users.append(user)
+
 if __name__ == "__main__":
     manager = UserManager()
-    manager.add_user("Данияр", "daniiar@gmail.com", "!@21449#%^&*&$!151")
+    manager.add_user("Пинус", "Pinus@gmail.com", "!@21449#%^&*&$!151")
     manager.print_all_users()
     manager.save_to_json("users.json")
 
     new_manager = UserManager()
     new_manager.load_from_json("users.json")
     new_manager.print_all_users()
+
+    manager.save_to_db()
+
+    db_manager = UserManager()
+    db_manager.load_from_db()
+    print("\nЗагружено из БД: ")
+    db_manager.print_all_users()
+
+conn.close()
